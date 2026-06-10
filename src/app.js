@@ -2,8 +2,10 @@ const TOTALS_ENDPOINT = "/api/totales";
 const CANDIDATES_ENDPOINT = "/api/participantes";
 const SETTINGS_ENDPOINT = "/api/settings";
 const UPLOAD_ENDPOINT = "/api/upload-image";
+const MESSAGES_ENDPOINT = "/api/messages";
 const SETTINGS_KEY = "onpe-animation-settings-v1";
 const ADMIN_SESSION_KEY = "onpe-admin-session-v1";
+const CHAT_NAME_KEY = "onpe-chat-name-v1";
 
 const fallbackTotals = {
   actasContabilizadas: 97.803,
@@ -654,3 +656,169 @@ fetchSettings();
 refreshData();
 setupAutoRefresh();
 setupSettingsRefresh();
+
+const chatToggle = document.querySelector("#chatToggle");
+const chatClose = document.querySelector("#chatClose");
+const chatContainer = document.querySelector("#chatContainer");
+const chatMessagesEl = document.querySelector("#chatMessages");
+const chatForm = document.querySelector("#chatForm");
+const chatName = document.querySelector("#chatName");
+const chatInput = document.querySelector("#chatInput");
+const chatUnread = document.querySelector("#chatUnread");
+
+let socket;
+let unreadMessages = 0;
+const renderedMessageIds = new Set();
+
+if (chatName) {
+  chatName.value = localStorage.getItem(CHAT_NAME_KEY) || "";
+}
+
+function initChat() {
+  if (socket || typeof io !== "function" || !chatMessagesEl || !chatForm || !chatInput || !chatName) return;
+
+  socket = io();
+
+  socket.on("chatHistory", (messages) => {
+    renderChatHistory(messages);
+  });
+
+  socket.on("chatMessage", addMessageToDOM);
+  socket.on("connect_error", () => {
+    loadChatHistory();
+  });
+}
+
+async function loadChatHistory() {
+  if (!chatMessagesEl) return;
+
+  try {
+    const messages = await fetchJson(MESSAGES_ENDPOINT);
+    renderChatHistory(messages);
+  } catch {
+    renderChatStatus("No se pudo cargar el historial.");
+  }
+}
+
+function renderChatHistory(messages) {
+  renderedMessageIds.clear();
+  chatMessagesEl.replaceChildren();
+  (messages || []).forEach(addMessageToDOM);
+}
+
+function renderChatStatus(message) {
+  chatMessagesEl.replaceChildren();
+  const li = document.createElement("li");
+  li.className = "chat-status";
+  li.textContent = message;
+  chatMessagesEl.appendChild(li);
+}
+
+function addMessageToDOM(msg) {
+  if (!msg || !msg.user) return;
+  if (msg.id && renderedMessageIds.has(msg.id)) return;
+  if (msg.id) renderedMessageIds.add(msg.id);
+
+  const li = document.createElement("li");
+  li.className = msg.user === (chatName?.value.trim() || "Anon") ? "is-own" : "";
+  const time = new Intl.DateTimeFormat("es-PE", {
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(msg.timestamp || Date.now()));
+
+  li.innerHTML = `<span>${escapeHtml(msg.user)}</span><p>${escapeHtml(msg.text)}</p><time>${time}</time>`;
+  chatMessagesEl.appendChild(li);
+  chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+
+  if (!isChatOpen()) {
+    unreadMessages += 1;
+    renderUnread();
+  }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function isChatOpen() {
+  return chatContainer?.classList.contains("is-open");
+}
+
+function renderUnread() {
+  if (!chatUnread) return;
+
+  chatUnread.hidden = unreadMessages === 0;
+  chatUnread.textContent = String(Math.min(unreadMessages, 99));
+}
+
+function openChat() {
+  chatContainer?.classList.add("is-open");
+  chatContainer?.setAttribute("aria-hidden", "false");
+  chatToggle?.setAttribute("aria-expanded", "true");
+  unreadMessages = 0;
+  renderUnread();
+  initChat();
+  loadChatHistory();
+  chatInput?.focus();
+}
+
+function closeChat() {
+  chatContainer?.classList.remove("is-open");
+  chatContainer?.setAttribute("aria-hidden", "true");
+  chatToggle?.setAttribute("aria-expanded", "false");
+}
+
+async function sendMessage() {
+  initChat();
+
+  const text = chatInput.value.trim();
+  const user = chatName.value.trim() || "Anon";
+
+  if (!text) return;
+
+  localStorage.setItem(CHAT_NAME_KEY, user);
+  chatInput.disabled = true;
+
+  try {
+    const response = await fetch(MESSAGES_ENDPOINT, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ user, text })
+    });
+    const payload = await response.json();
+
+    if (!response.ok || !payload.success) {
+      throw new Error(payload.message || "No se pudo enviar el mensaje.");
+    }
+
+    addMessageToDOM(payload.data);
+  } catch (error) {
+    renderChatStatus(error.message);
+  } finally {
+    chatInput.disabled = false;
+    chatInput.focus();
+  }
+
+  chatInput.value = "";
+}
+
+chatToggle?.addEventListener("click", () => {
+  if (isChatOpen()) closeChat();
+  else openChat();
+});
+
+chatClose?.addEventListener("click", () => {
+  closeChat();
+});
+
+chatForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  sendMessage();
+});

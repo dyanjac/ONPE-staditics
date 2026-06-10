@@ -835,6 +835,224 @@ main {
   font-weight: 950;
 }
 
+.chat-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: auto minmax(340px, 400px);
+  pointer-events: none;
+  transform: translateX(calc(100% - 48px));
+  transition: transform 220ms ease;
+}
+
+.chat-sidebar.is-open {
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.chat-rail {
+  align-self: center;
+  width: 48px;
+  min-height: 132px;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  padding: 12px 0;
+  border-radius: 8px 0 0 8px;
+  color: white;
+  background: linear-gradient(180deg, #063f73, #0b5b99);
+  box-shadow: -8px 12px 30px rgba(12, 29, 50, 0.2);
+  pointer-events: auto;
+}
+
+.chat-rail svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.chat-rail span {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.chat-rail b {
+  min-width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: var(--onpe-blue);
+  background: white;
+  font-size: 0.72rem;
+}
+
+.chat-panel {
+  height: 100vh;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  border-left: 1px solid var(--line);
+  background: #f7fafc;
+  box-shadow: -18px 0 44px rgba(12, 29, 50, 0.18);
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+  color: white;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), transparent 44%),
+    #06457f;
+}
+
+.chat-header .metric-label {
+  margin-bottom: 3px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.chat-header strong {
+  display: block;
+  font-size: 1.1rem;
+}
+
+.chat-close {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  color: white;
+  background: rgba(255, 255, 255, 0.16);
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.chat-messages {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 0;
+  margin: 0;
+  padding: 16px;
+  overflow-y: auto;
+  list-style: none;
+  background:
+    linear-gradient(180deg, rgba(6, 69, 127, 0.04), transparent 180px),
+    #f7fafc;
+}
+
+.chat-messages:empty::before {
+  content: "Sin mensajes todavia";
+  align-self: center;
+  justify-self: center;
+  padding: 12px 14px;
+  border: 1px dashed #b9c9d9;
+  border-radius: 8px;
+  color: #6b7c90;
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 850;
+}
+
+.chat-messages li {
+  display: grid;
+  gap: 4px;
+  width: fit-content;
+  max-width: 92%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: white;
+  color: var(--ink);
+  box-shadow: 0 1px 4px rgba(12, 29, 50, 0.08);
+  overflow-wrap: anywhere;
+}
+
+.chat-messages li.is-own {
+  justify-self: end;
+  background: #e6f2ff;
+  border: 1px solid #c3ddf6;
+}
+
+.chat-messages li.chat-status {
+  width: 100%;
+  max-width: none;
+  color: var(--danger);
+  background: #fff1f1;
+  border: 1px solid #ffd1d1;
+  font-weight: 800;
+}
+
+.chat-messages li span {
+  color: var(--onpe-blue);
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.chat-messages li p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.chat-messages li time {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 750;
+}
+
+.chat-form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 14px;
+  border-top: 1px solid var(--line);
+  background: white;
+}
+
+.chat-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.chat-form input {
+  min-width: 0;
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #fbfdff;
+}
+
+.chat-form input:focus {
+  outline: 2px solid rgba(23, 103, 177, 0.2);
+  border-color: #76addd;
+}
+
+.chat-form button {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 8px;
+  padding: 0 12px;
+  color: white;
+  background: linear-gradient(135deg, #06457f, #0b5b99);
+  font-weight: 850;
+}
+
 [data-animation="pulse"] .portrait-ring {
   animation: pulse var(--animation-speed) ease-in-out infinite;
 }
@@ -1037,5 +1255,9 @@ main {
 
   .party-row {
     flex-direction: column;
+  }
+
+  .chat-sidebar {
+    grid-template-columns: auto minmax(272px, calc(100vw - 48px));
   }
 }

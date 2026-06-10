@@ -234,6 +234,38 @@
       </article>
     </template>
 
+    <aside class="chat-sidebar" id="chatContainer" aria-label="Chat de monitoreo" aria-hidden="true">
+      <button class="chat-rail" id="chatToggle" type="button" aria-controls="chatContainer" aria-expanded="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M21 6h-2v9H5v2h14l4 4V6z" />
+        </svg>
+        <span>Chat</span>
+        <b id="chatUnread" hidden>0</b>
+      </button>
+      <div class="chat-panel">
+        <div class="chat-header">
+          <div>
+            <span class="metric-label">Conversacion</span>
+            <strong>Chat de monitoreo</strong>
+          </div>
+          <button class="chat-close" id="chatClose" type="button" aria-label="Cerrar chat">×</button>
+        </div>
+        <ul class="chat-messages" id="chatMessages" aria-live="polite"></ul>
+        <form class="chat-form" id="chatForm">
+          <label>
+            <span>Nombre</span>
+            <input id="chatName" type="text" placeholder="Nombre" maxlength="80" autocomplete="name" />
+          </label>
+          <label>
+            <span>Mensaje</span>
+            <input id="chatInput" type="text" placeholder="Escribe..." maxlength="1000" autocomplete="off" />
+          </label>
+          <button id="chatSend" type="submit">Enviar</button>
+        </form>
+      </div>
+    </aside>
+
+    <script src="/socket.io/socket.io.js"></script>
     <script src="./src/app.js" type="module"></script>
   </body>
 </html>

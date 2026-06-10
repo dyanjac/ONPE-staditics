@@ -13,5 +13,7 @@
     "frontend"
   ],
   "author": "",
-  "license": "UNLICENSED"
+  "dependencies": {
+    "socket.io": "^4.7.2"
+  }
 }

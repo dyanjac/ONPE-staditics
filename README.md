@@ -29,6 +29,8 @@ Si ONPE no responde o bloquea la consulta, la interfaz usa los datos de respaldo
 - Las animaciones, colores, escala e imagen de cada candidato se guardan en `data/settings.json`.
 - Los clientes leen la configuracion compartida desde `/api/settings`.
 - Las imagenes cargadas desde el panel se guardan en `public/uploads` y se sirven como recursos publicos, por ejemplo `/public/uploads/archivo.png`.
+- El chat se despliega desde la barra lateral derecha y usa Socket.IO.
+- Las conversaciones del chat se persisten sin base de datos en `data/chat.json`.
 - Si ONPE requiere una cookie de Cloudflare, ejecuta el servidor con `ONPE_COOKIE`:
 
 ```bash

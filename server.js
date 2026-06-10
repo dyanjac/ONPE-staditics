@@ -1,4 +1,5 @@
 const http = require("http");
+const { Server } = require("socket.io");
 const https = require("https");
 const fs = require("fs/promises");
 const path = require("path");
@@ -7,6 +8,22 @@ const { URL } = require("url");
 const PORT = Number(process.env.PORT || 5173);
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, "data");
+const CHAT_FILE = path.join(DATA_DIR, "chat.json");
+let chatMessages = [];
+async function loadChat() {
+  try {
+    const data = await fs.readFile(CHAT_FILE, "utf8");
+    chatMessages = JSON.parse(data) || [];
+  } catch (err) {
+    if (err.code !== "ENOENT") console.error("Error loading chat data", err);
+    chatMessages = [];
+  }
+}
+async function persistChat() {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.writeFile(CHAT_FILE, JSON.stringify(chatMessages, null, 2));
+}
+
 const PUBLIC_DIR = path.join(ROOT, "public");
 const UPLOAD_DIR = path.join(PUBLIC_DIR, "uploads");
 const SETTINGS_FILE = path.join(DATA_DIR, "settings.json");
@@ -269,6 +286,48 @@ async function handleImageUpload(req, res) {
   }
 }
 
+async function handleMessages(req, res) {
+  if (req.method === "GET") {
+    sendJson(res, 200, { success: true, message: "", data: chatMessages });
+    return;
+  }
+
+  if (req.method !== "POST") {
+    sendJson(res, 405, { success: false, message: "Metodo no permitido.", data: null });
+    return;
+  }
+
+  try {
+    const body = await readBody(req, 32 * 1024);
+    const payload = JSON.parse(body.toString("utf8"));
+
+    if (!payload || typeof payload.user !== "string" || typeof payload.text !== "string") {
+      throw new Error("Mensaje invalido.");
+    }
+
+    const text = payload.text.trim();
+    const user = payload.user.trim() || "Anon";
+
+    if (!text) {
+      throw new Error("El mensaje no puede estar vacio.");
+    }
+
+    const message = {
+      id: `${Date.now()}${Math.random().toString(36).slice(2)}`,
+      user: user.slice(0, 80),
+      text: text.slice(0, 1000),
+      timestamp: Date.now()
+    };
+
+    chatMessages.push(message);
+    await persistChat();
+    io.emit("chatMessage", message);
+    sendJson(res, 200, { success: true, message: "", data: message });
+  } catch (error) {
+    sendJson(res, 400, { success: false, message: error.message, data: null });
+  }
+}
+
 function proxyOnpe(routePath, res) {
   const headers = {
     accept: "*/*",
@@ -379,9 +438,42 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  if (pathname === "/api/messages") {
+    handleMessages(req, res);
+    return;
+  }
+
   serveStatic(pathname, res);
 });
 
-server.listen(PORT, () => {
-  console.log(`Servidor disponible en http://localhost:${PORT}`);
+const io = new Server(server, { cors: { origin: "*" } });
+
+io.on("connection", (socket) => {
+  socket.emit("chatHistory", chatMessages);
+
+  socket.on("chatMessage", async (msg) => {
+    if (!msg || typeof msg.user !== "string" || typeof msg.text !== "string") return;
+
+    const text = msg.text.trim();
+    const user = msg.user.trim() || "Anon";
+
+    if (!text) return;
+
+    const message = {
+      id: `${Date.now()}${Math.random().toString(36).slice(2)}`,
+      user: user.slice(0, 80),
+      text: text.slice(0, 1000),
+      timestamp: Date.now()
+    };
+
+    chatMessages.push(message);
+    await persistChat();
+    io.emit("chatMessage", message);
+  });
+});
+
+loadChat().finally(() => {
+  server.listen(PORT, () => {
+    console.log(`Servidor disponible en http://localhost:${PORT}`);
+  });
 });
