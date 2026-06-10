@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Resumen electoral ONPE</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span>ON</span>
+          </div>
+          <div>
+            <p class="eyebrow">Elección de Fórmula Presidencial</p>
+            <h1>Diferencia de votos</h1>
+          </div>
+        </div>
+
+        <div class="toolbar" aria-label="Controles de datos">
+          <button class="icon-button" id="refreshButton" type="button" title="Actualizar datos" aria-label="Actualizar datos">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M20 12a8 8 0 0 1-14.3 4.9" />
+              <path d="M4 12A8 8 0 0 1 18.3 7.1" />
+              <path d="M18 3v4h-4" />
+              <path d="M6 21v-4h4" />
+            </svg>
+          </button>
+          <label class="toggle">
+            <input id="autoRefresh" type="checkbox" checked />
+            <span>Auto</span>
+          </label>
+          <button class="secondary-button compact" id="adminToggle" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
+            <span id="adminToggleLabel">Admin</span>
+          </button>
+          <span class="status-pill" id="sourceStatus">Cargando</span>
+        </div>
+      </header>
+
+      <main>
+        <section class="summary-band" aria-label="Resumen de actas">
+          <div class="summary-main">
+            <div>
+              <span class="metric-label">Actas contabilizadas</span>
+              <strong id="actasPercent">-- %</strong>
+            </div>
+            <div>
+              <span class="metric-label">Total de actas</span>
+              <strong id="totalActas">--</strong>
+              <span id="actasDetail">--</span>
+            </div>
+          </div>
+
+          <div class="actas-track" aria-hidden="true">
+            <span class="track-counted" id="trackCounted"></span>
+            <span class="track-jee" id="trackJee"></span>
+            <span class="track-pending" id="trackPending"></span>
+          </div>
+
+          <div class="summary-meta">
+            <span id="updatedAt">Actualizado: --</span>
+            <div class="legend">
+              <span><i class="dot counted"></i>Contabilizadas <b id="countedLegend">--</b></span>
+              <span><i class="dot jee"></i>Para envío al JEE <b id="jeeLegend">--</b></span>
+              <span><i class="dot pending"></i>Pendientes <b id="pendingLegend">--</b></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="location-row" aria-label="Filtro territorial">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21s7-6 7-12a7 7 0 1 0-14 0c0 6 7 12 7 12Z" />
+            <circle cx="12" cy="9" r="2.2" />
+          </svg>
+          <span>Todos</span>
+        </section>
+
+        <section class="results-stage" aria-label="Resultados por candidato">
+          <div class="palace-backdrop" aria-hidden="true"></div>
+          <div class="candidate-grid" id="candidateGrid"></div>
+          <aside class="difference-panel" aria-label="Diferencia de votos">
+            <span class="metric-label">Diferencia</span>
+            <strong id="voteDifference">--</strong>
+            <span id="differencePercent">--</span>
+            <div class="leader-line">
+              <span id="leaderName">--</span>
+              <span id="leaderVotes">--</span>
+            </div>
+          </aside>
+        </section>
+
+        <section class="admin-login-panel is-hidden" id="adminLoginPanel" aria-label="Ingreso de administrador">
+          <form class="login-form" id="adminLoginForm">
+            <div>
+              <span class="metric-label">Acceso privado</span>
+              <h2>Administrador</h2>
+            </div>
+            <label>
+              <span>Usuario</span>
+              <input id="adminUser" name="user" type="text" autocomplete="username" />
+            </label>
+            <label>
+              <span>Clave</span>
+              <input id="adminPassword" name="password" type="password" autocomplete="current-password" />
+            </label>
+            <button class="secondary-button" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <path d="M10 17l5-5-5-5" />
+                <path d="M15 12H3" />
+              </svg>
+              Ingresar
+            </button>
+            <p class="form-message" id="adminLoginMessage" role="status"></p>
+          </form>
+        </section>
+
+        <section class="admin-panel is-hidden" id="adminPanel" aria-label="Administrador de animaciones">
+          <div class="section-heading">
+            <div>
+              <span class="metric-label">Panel de animaciones</span>
+              <h2>Administrar candidatos</h2>
+            </div>
+            <div class="admin-actions">
+              <button class="secondary-button" id="resetSettings" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 3-6.7" />
+                  <path d="M3 4v6h6" />
+                </svg>
+                Restaurar
+              </button>
+              <button class="secondary-button muted" id="logoutAdmin" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <path d="M16 17l5-5-5-5" />
+                  <path d="M21 12H9" />
+                </svg>
+                Salir
+              </button>
+            </div>
+          </div>
+          <div class="controls-grid" id="controlsGrid"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="candidateTemplate">
+      <article class="candidate-card">
+        <div class="portrait-ring">
+          <div class="ring-fill"></div>
+          <div class="portrait">
+            <img alt="" />
+            <span></span>
+          </div>
+        </div>
+        <div class="candidate-copy">
+          <div class="percentage-row">
+            <strong class="candidate-percent"></strong>
+            <span class="movement-badge"></span>
+          </div>
+          <div class="separator"></div>
+          <h2></h2>
+          <div class="party-row">
+            <span class="party-logo"></span>
+            <span class="party-name"></span>
+          </div>
+          <strong class="votes"></strong>
+          <div class="vote-meter" aria-hidden="true"><span></span></div>
+        </div>
+      </article>
+    </template>
+
+    <template id="controlTemplate">
+      <article class="control-card">
+        <div class="control-title">
+          <span class="control-avatar"></span>
+          <div>
+            <h3></h3>
+            <p></p>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label class="toggle wide">
+            <input data-field="enabled" type="checkbox" />
+            <span>Animar</span>
+          </label>
+          <label>
+            <span>Animación</span>
+            <select data-field="animation">
+              <option value="pulse">Pulso</option>
+              <option value="float">Flotar</option>
+              <option value="lane">Avance</option>
+              <option value="focus">Foco</option>
+              <option value="none">Ninguna</option>
+            </select>
+          </label>
+        </div>
+
+        <label>
+          <span>Velocidad</span>
+          <input data-field="speed" type="range" min="0.7" max="4" step="0.1" />
+          <output data-output="speed"></output>
+        </label>
+
+        <label>
+          <span>Escala</span>
+          <input data-field="scale" type="range" min="0.9" max="1.18" step="0.01" />
+          <output data-output="scale"></output>
+        </label>
+
+        <div class="field-row">
+          <label>
+            <span>Color</span>
+            <input data-field="accent" type="color" />
+          </label>
+          <label>
+            <span>Imagen local</span>
+            <input data-field="imageFile" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+          </label>
+        </div>
+
+        <label>
+          <span>Recurso compartido</span>
+          <input data-field="image" type="url" placeholder="/public/uploads/imagen.jpg" />
+        </label>
+        <p class="upload-message" data-upload-message></p>
+      </article>
+    </template>
+
+    <script src="./src/app.js" type="module"></script>
+  </body>
+</html>

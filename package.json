@@ -1,0 +1,17 @@
+{
+  "name": "resumen-onpe-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Panel frontend para visualizar diferencia de votos y administrar animaciones de candidatos.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "onpe",
+    "elecciones",
+    "frontend"
+  ],
+  "author": "",
+  "license": "UNLICENSED"
+}
